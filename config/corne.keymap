@@ -125,14 +125,16 @@
                 raise_layer {
 // -----------------------------------------------------------------------------------------
 // | TAB | MAC | WIN | BT2 | BT3 | BT4 |   |  F1 |  F2 |  F3 |  F4 |  F5  | BSPC |
-// | CTL | BCLR| PC* |     |     |     |   | LFT | DWN |  UP | RGT |  \   |  F12 |
+// | CTL | BCLR| PC* | SUP | WM* |     |   | LFT | DWN |  UP | RGT |  \   |  F12 |
 // | SHT |     |     |     |     |     |   |  F6 |  F7 |  F8 |  F9 | F10  |  F11 |
 //                    | GUI |     | SPC |   | ENT | RSE | ALT |
 //   MAC = profile 1 + Mac mode    WIN = profile 2 + Windows mode (Cmd<->Ctrl swap)
 //   PC* = double-tap to toggle PC mode (Windows/Linux Ctrl) on the current device
+//   SUP = plain Super held (D position): hold + tap arrows to SWITCH window focus.
+//   WM* = Shift+Super held (F position): hold + tap arrows to MOVE/snap windows.
                         bindings = <
    &kp TAB    &to_mac       &to_win       &bt BT_SEL 2  &bt BT_SEL 3  &bt BT_SEL 4      &kp F1    &kp F2    &kp F3   &kp F4     &kp F5   &kp BSPC
-   &kp LCTRL  &bt BT_CLR    &td_pc        &trans        &trans        &trans             &kp LEFT  &kp DOWN  &kp UP   &kp RIGHT  &kp BSLH &kp F12
+   &kp LCTRL  &bt BT_CLR    &td_pc        &kp LGUI      &kp LS(LGUI)  &trans             &kp LEFT  &kp DOWN  &kp UP   &kp RIGHT  &kp BSLH &kp F12
    &kp LSHFT  &trans        &trans        &trans        &trans        &trans             &kp F6    &kp F7    &kp F8   &kp F9     &kp F10  &tog 2
                                           &kp LGUI      &trans        &kp SPACE          &kp RET   &trans    &kp RALT
                         >;
@@ -144,11 +146,15 @@
 // Everything is &trans (falls through to the layer below) EXCEPT the modifier keys,
 // which swap Cmd<->Ctrl so Windows shortcuts (Ctrl+C, etc.) land correctly while
 // keeping your home-row mods. ALT and SHIFT are unchanged.
-//   home row:  Cmd/A -> Ctrl/A,  Ctrl/F -> Cmd/F,  Ctrl/J -> Cmd/J,  Cmd/; -> Ctrl/;
+//   Swaps the LEFT-hand + thumb modifiers only, so it never overrides the
+//   arrow / window keys on the Raise layer:
+//   home row:  Cmd/A -> Ctrl/A
 //   outer:     Ctrl/ESC -> Cmd/ESC          thumb: GUI -> CTRL
+//   (F is left alone so the Raise-layer WM key keeps its Shift in PC mode; the
+//    right-hand J / ; mods are left alone too.)
                         bindings = <
    &trans          &trans          &trans   &trans   &trans   &trans         &trans   &trans          &trans   &trans   &trans            &trans
-   &hml LGUI ESC   &hml LCTRL A    &trans   &trans   &hml LGUI F   &trans     &trans   &hmr RGUI J     &trans   &trans   &hmr RCTRL SEMI   &trans
+   &hml LGUI ESC   &hml LCTRL A    &trans   &trans   &trans        &trans     &trans   &trans          &trans   &trans   &trans            &trans
    &trans          &trans          &trans   &trans   &trans   &trans         &trans   &trans          &trans   &trans   &trans            &trans
                                             &kp LCTRL   &trans   &trans       &trans   &trans   &trans
                         >;
