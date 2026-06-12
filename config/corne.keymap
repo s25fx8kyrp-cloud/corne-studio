@@ -46,6 +46,48 @@
                         hold-trigger-key-positions = <KEYS_LEFT THUMBS>;
                         hold-trigger-on-release;
                 };
+
+                // Double-tap to toggle "PC mode" (the Windows/Linux Cmd<->Ctrl
+                // overlay, layer 3). Single tap does nothing, so it won't flip by
+                // accident. Use this for the Linux VM running on the Mac, where the
+                // BT profile doesn't change.
+                td_pc: tap_dance_pc {
+                        compatible = "zmk,behavior-tap-dance";
+                        #binding-cells = <0>;
+                        tapping-term-ms = <250>;
+                        bindings = <&none>, <&tog 3>;
+                };
+
+                // Layer LOCK key (replaces the spare ESC, bottom-right of base layer):
+                //   single tap  -> lock/unlock the Lower layer  (&tog 1)
+                //   double tap  -> lock/unlock the Raise layer  (&tog 2)
+                // Tap again on the same one to release it. (ESC is still available
+                // on the ESC/CTL key to the left of A.)
+                td_layers: tap_dance_layers {
+                        compatible = "zmk,behavior-tap-dance";
+                        #binding-cells = <0>;
+                        tapping-term-ms = <250>;
+                        bindings = <&tog 1>, <&tog 2>;
+                };
+        };
+
+        macros {
+                // BT profile 1 = Mac:  connect to profile 0 AND drop the Windows
+                // overlay, so Cmd stays Cmd. Bound to the "BT0" key on the raise layer.
+                to_mac: to_mac {
+                        compatible = "zmk,behavior-macro";
+                        #binding-cells = <0>;
+                        bindings = <&to 0 &bt BT_SEL 0>;
+                };
+
+                // BT profile 2 = Windows:  connect to profile 1 AND turn on the
+                // Windows overlay (layer 3), which swaps Cmd<->Ctrl on the home row
+                // and thumb. Bound to the "BT1" key on the raise layer.
+                to_win: to_win {
+                        compatible = "zmk,behavior-macro";
+                        #binding-cells = <0>;
+                        bindings = <&to 3 &bt BT_SEL 1>;
+                };
         };
 
         keymap {
@@ -55,12 +97,13 @@
 // -----------------------------------------------------------------------------------------
 // | LT2/TAB |  Q  |  W  |  E  |  R  |  T  |   |  Y  |  U  |  I  |  O  |  P  | BSPC |
 // | ESC/CTL |GUI/A|ALT/S|SFT/D|CTL/F|  G  |   |  H  |CTL/J|SFT/K|ALT/L|GUI/;|  '   |
-// |   SHFT  |  Z  |  X  |  C  |  V  |  B  |   |  N  |  M  |  ,  |  .  |  /  | ESC  |
+// |   SHFT  |  Z  |  X  |  C  |  V  |  B  |   |  N  |  M  |  ,  |  .  |  /  | LYR* |
 //                        | GUI | LWR | SPC |   | ENT | RSE | BKSP |
+//   LYR* = tap to lock Lower, double-tap to lock Raise (tap again to release)
                         bindings = <
    &lt 2 TAB        &kp Q         &kp W         &kp E          &kp R          &kp T          &kp Y    &kp U          &kp I          &kp O         &kp P            &kp BSPC
    &hml LCTRL ESC   &hml LGUI A   &hml LALT S   &hml LSHFT D   &hml LCTRL F   &kp G          &kp H    &hmr RCTRL J   &hmr RSHFT K   &hmr RALT L   &hmr RGUI SEMI   &kp SQT
-   &kp LSHFT        &kp Z         &kp X         &kp C          &kp V          &kp B          &kp N    &kp M          &kp COMMA      &kp DOT       &kp FSLH         &kp ESC
+   &kp LSHFT        &kp Z         &kp X         &kp C          &kp V          &kp B          &kp N    &kp M          &kp COMMA      &kp DOT       &kp FSLH         &td_layers
                                                 &kp LGUI       &mo 1          &kp SPACE      &kp RET  &mo 2          &kp BSPC
                         >;
                 };
@@ -74,22 +117,40 @@
                         bindings = <
    &kp GRAVE  &kp EXCL  &kp AT    &kp HASH  &kp DLLR  &kp PRCNT      &kp N7   &kp N8   &kp N9   &kp MINUS  &kp FSLH   &kp ESC
    &kp TILDE  &kp CARET &kp AMPS  &kp ASTRK &kp LPAR  &kp RPAR       &kp N4   &kp N5   &kp N6   &kp PLUS   &kp ASTRK  &kp BSPC
-   &kp PIPE   &kp BSLH  &kp LBKT  &kp RBKT  &kp LBRC  &kp RBRC       &kp N1   &kp N2   &kp N3   &kp DOT    &kp EQUAL  &kp RET
+   &kp PIPE   &kp BSLH  &kp LBKT  &kp RBKT  &kp LBRC  &kp RBRC       &kp N1   &kp N2   &kp N3   &kp DOT    &kp EQUAL  &tog 1
                                    &kp LGUI  &trans    &kp SPACE      &kp RET  &trans   &kp N0
                         >;
                 };
 
                 raise_layer {
 // -----------------------------------------------------------------------------------------
-// | TAB | BT0 | BT1 | BT2 | BT3 | BT4 |   |  F1 |  F2 |  F3 |  F4 |  F5  | BSPC |
-// | CTL |     |     |     |     |     |   | LFT | DWN |  UP | RGT |  \   |  F12 |
+// | TAB | MAC | WIN | BT2 | BT3 | BT4 |   |  F1 |  F2 |  F3 |  F4 |  F5  | BSPC |
+// | CTL | BCLR| PC* |     |     |     |   | LFT | DWN |  UP | RGT |  \   |  F12 |
 // | SHT |     |     |     |     |     |   |  F6 |  F7 |  F8 |  F9 | F10  |  F11 |
 //                    | GUI |     | SPC |   | ENT | RSE | ALT |
+//   MAC = profile 1 + Mac mode    WIN = profile 2 + Windows mode (Cmd<->Ctrl swap)
+//   PC* = double-tap to toggle PC mode (Windows/Linux Ctrl) on the current device
                         bindings = <
-   &kp TAB    &bt BT_SEL 0  &bt BT_SEL 1  &bt BT_SEL 2  &bt BT_SEL 3  &bt BT_SEL 4      &kp F1    &kp F2    &kp F3   &kp F4     &kp F5   &kp BSPC
-   &kp LCTRL  &bt BT_CLR    &trans        &trans        &trans        &trans             &kp LEFT  &kp DOWN  &kp UP   &kp RIGHT  &kp BSLH &kp F12
-   &kp LSHFT  &trans        &trans        &trans        &trans        &trans             &kp F6    &kp F7    &kp F8   &kp F9     &kp F10  &kp F11
+   &kp TAB    &to_mac       &to_win       &bt BT_SEL 2  &bt BT_SEL 3  &bt BT_SEL 4      &kp F1    &kp F2    &kp F3   &kp F4     &kp F5   &kp BSPC
+   &kp LCTRL  &bt BT_CLR    &td_pc        &trans        &trans        &trans             &kp LEFT  &kp DOWN  &kp UP   &kp RIGHT  &kp BSLH &kp F12
+   &kp LSHFT  &trans        &trans        &trans        &trans        &trans             &kp F6    &kp F7    &kp F8   &kp F9     &kp F10  &tog 2
                                           &kp LGUI      &trans        &kp SPACE          &kp RET   &trans    &kp RALT
+                        >;
+                };
+
+                win_layer {
+// -----------------------------------------------------------------------------------------
+// Windows overlay (layer 3). Turned on by the WIN key, off by the MAC key.
+// Everything is &trans (falls through to the layer below) EXCEPT the modifier keys,
+// which swap Cmd<->Ctrl so Windows shortcuts (Ctrl+C, etc.) land correctly while
+// keeping your home-row mods. ALT and SHIFT are unchanged.
+//   home row:  Cmd/A -> Ctrl/A,  Ctrl/F -> Cmd/F,  Ctrl/J -> Cmd/J,  Cmd/; -> Ctrl/;
+//   outer:     Ctrl/ESC -> Cmd/ESC          thumb: GUI -> CTRL
+                        bindings = <
+   &trans          &trans          &trans   &trans   &trans   &trans         &trans   &trans          &trans   &trans   &trans            &trans
+   &hml LGUI ESC   &hml LCTRL A    &trans   &trans   &hml LGUI F   &trans     &trans   &hmr RGUI J     &trans   &trans   &hmr RCTRL SEMI   &trans
+   &trans          &trans          &trans   &trans   &trans   &trans         &trans   &trans          &trans   &trans   &trans            &trans
+                                            &kp LCTRL   &trans   &trans       &trans   &trans   &trans
                         >;
                 };
         };
