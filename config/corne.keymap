@@ -125,16 +125,17 @@
                 raise_layer {
 // -----------------------------------------------------------------------------------------
 // | TAB | MAC | WIN | BT2 | BT3 | BT4 |   |  F1 |  F2 |  F3 |  F4 |  F5  | BSPC |
-// | CTL | BCLR| PC* | SUP | WM* |     |   | LFT | DWN |  UP | RGT |  \   |  F12 |
+// | CTL | BCLR| PC* | SUP | WM* | UNLK|   | LFT | DWN |  UP | RGT |  \   |  F12 |
 // | SHT |     |     |     |     |     |   |  F6 |  F7 |  F8 |  F9 | F10  |  F11 |
 //                    | GUI |     | SPC |   | ENT | RSE | ALT |
 //   MAC = profile 1 + Mac mode    WIN = profile 2 + Windows mode (Cmd<->Ctrl swap)
-//   PC* = double-tap to toggle PC mode (Windows/Linux Ctrl) on the current device
-//   SUP = plain Super held (D position): hold + tap arrows to SWITCH window focus.
-//   WM* = Shift+Super held (F position): hold + tap arrows to MOVE/snap windows.
+//   PC*  = double-tap to toggle PC mode (Windows/Linux Ctrl) on the current device
+//   SUP  = plain Super held (D position): hold + tap arrows to SWITCH window focus.
+//   WM*  = Shift+Super held (F position): hold + tap arrows to MOVE/snap windows.
+//   UNLK = ZMK Studio unlock: hold Raise, tap it to allow live keymap edits.
                         bindings = <
    &kp TAB    &to_mac       &to_win       &bt BT_SEL 2  &bt BT_SEL 3  &bt BT_SEL 4      &kp F1    &kp F2    &kp F3   &kp F4     &kp F5   &kp BSPC
-   &kp LCTRL  &bt BT_CLR    &td_pc        &kp LGUI      &kp LS(LGUI)  &trans             &kp LEFT  &kp DOWN  &kp UP   &kp RIGHT  &kp BSLH &kp F12
+   &kp LCTRL  &bt BT_CLR    &td_pc        &kp LGUI      &kp LS(LGUI)  &studio_unlock     &kp LEFT  &kp DOWN  &kp UP   &kp RIGHT  &kp BSLH &kp F12
    &kp LSHFT  &trans        &trans        &trans        &trans        &trans             &kp F6    &kp F7    &kp F8   &kp F9     &kp F10  &tog 2
                                           &kp LGUI      &trans        &kp SPACE          &kp RET   &trans    &kp RALT
                         >;
