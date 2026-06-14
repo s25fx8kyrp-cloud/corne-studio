@@ -7,6 +7,7 @@
 #include <behaviors.dtsi>
 #include <dt-bindings/zmk/keys.h>
 #include <dt-bindings/zmk/bt.h>
+#include <dt-bindings/zmk/outputs.h>
 
 // Corne key positions (for positional hold-tap):
 //  0  1  2  3  4  5     6  7  8  9 10 11
@@ -90,6 +91,40 @@
                 };
         };
 
+        combos {
+                compatible = "zmk,combos";
+                // Combos fire only on the base layer (layers = <0>) so they can't
+                // trigger by accident on Lower/Raise/Adjust. Positions per the map
+                // at the top of this file.
+                combo_caps {            // F + J  (two-handed) -> Caps Word
+                        timeout-ms = <45>;
+                        key-positions = <16 19>;
+                        layers = <0>;
+                        bindings = <&caps_word>;
+                };
+                combo_esc {             // J + K -> Esc
+                        timeout-ms = <45>;
+                        key-positions = <19 20>;
+                        layers = <0>;
+                        bindings = <&kp ESC>;
+                };
+                combo_tab {             // D + F -> Tab
+                        timeout-ms = <45>;
+                        key-positions = <15 16>;
+                        layers = <0>;
+                        bindings = <&kp TAB>;
+                };
+        };
+
+        conditional_layers {
+                compatible = "zmk,conditional-layers";
+                // Tri-layer: hold BOTH Lower (1) and Raise (2) to reach Adjust (4).
+                tri_adjust {
+                        if-layers = <1 2>;
+                        then-layer = <4>;
+                };
+        };
+
         keymap {
                 compatible = "zmk,keymap";
 
@@ -124,19 +159,18 @@
 
                 raise_layer {
 // -----------------------------------------------------------------------------------------
-// | TAB | MAC | WIN | BT2 | BT3 | BT4 |   |  F1 |  F2 |  F3 |  F4 |  F5  | BSPC |
-// | CTL | BCLR| PC* | SUP | WM* | UNLK|   | LFT | DWN |  UP | RGT |  \   |  F12 |
-// | SHT |     |     |     |     |     |   |  F6 |  F7 |  F8 |  F9 | F10  |  F11 |
+// | TAB | MAC | WIN |     |     |     |   |     |     |     |     |     | BSPC |
+// | CTL |     | PC* | SUP | WM* | UNLK|   | LFT | DWN |  UP | RGT |  \  |      |
+// | SHT |     |     |     |     |     |   |     |     |     |     |     | unlk |
 //                    | GUI |     | SPC |   | ENT | RSE | ALT |
-//   MAC = profile 1 + Mac mode    WIN = profile 2 + Windows mode (Cmd<->Ctrl swap)
-//   PC*  = double-tap to toggle PC mode (Windows/Linux Ctrl) on the current device
-//   SUP  = plain Super held (D position): hold + tap arrows to SWITCH window focus.
-//   WM*  = Shift+Super held (F position): hold + tap arrows to MOVE/snap windows.
-//   UNLK = ZMK Studio unlock: hold Raise, tap it to allow live keymap edits.
+//   MAC/WIN = BT profile + OS mode.   Window mgmt: PC* (Ctrl-mode), SUP (focus),
+//   WM* (move/snap).   Arrows on the right.   UNLK = ZMK Studio unlock.
+//   F-keys, extra BT profiles, media, brightness & lock now live on the ADJUST
+//   layer (hold BOTH Lower + Raise).   'unlk' (bottom-right) releases a locked Raise.
                         bindings = <
-   &kp TAB    &to_mac       &to_win       &bt BT_SEL 2  &bt BT_SEL 3  &bt BT_SEL 4      &kp F1    &kp F2    &kp F3   &kp F4     &kp F5   &kp BSPC
-   &kp LCTRL  &bt BT_CLR    &td_pc        &kp LGUI      &kp LS(LGUI)  &studio_unlock     &kp LEFT  &kp DOWN  &kp UP   &kp RIGHT  &kp BSLH &kp F12
-   &kp LSHFT  &trans        &trans        &trans        &trans        &trans             &kp F6    &kp F7    &kp F8   &kp F9     &kp F10  &tog 2
+   &kp TAB    &to_mac       &to_win       &trans        &trans        &trans             &trans    &trans    &trans   &trans     &trans   &kp BSPC
+   &kp LCTRL  &trans        &td_pc        &kp LGUI      &kp LS(LGUI)  &studio_unlock     &kp LEFT  &kp DOWN  &kp UP   &kp RIGHT  &kp BSLH &trans
+   &kp LSHFT  &trans        &trans        &trans        &trans        &trans             &trans    &trans    &trans   &trans     &trans   &tog 2
                                           &kp LGUI      &trans        &kp SPACE          &kp RET   &trans    &kp RALT
                         >;
                 };
@@ -158,6 +192,23 @@
    &hml LGUI ESC   &hml LCTRL A    &trans   &trans   &trans        &trans     &trans   &trans          &trans   &trans   &trans            &trans
    &trans          &trans          &trans   &trans   &trans   &trans         &trans   &trans          &trans   &trans   &trans            &trans
                                             &kp LCTRL   &trans   &trans       &trans   &trans   &trans
+                        >;
+                };
+
+                adjust_layer {
+// -----------------------------------------------------------------------------------------
+// Adjust layer (4) — reached by holding BOTH Lower + Raise (tri-layer).
+// |  F1 |  F2 |  F3 |  F4 |  F5 |  F6 |   |  F7 |  F8 |  F9 | F10 | F11 | F12 |
+// | BT2 | BT3 | BT4 | BCLR| BOOT| RST |   | PRV | P/P | NXT | VL- | VL+ | MUT |
+// | OUT | LCK |     |     |     |     |   | BR- | BR+ |     |     |     |     |
+//                    |     |     |     |   |     |     |     |
+//   LCK = Cmd+Ctrl+Q (locks the Mac).   OUT = toggle USB/BLE output.
+//   BOOT = bootloader (flash mode).   RST = reset.   BR-/BR+ = display brightness.
+                        bindings = <
+   &kp F1        &kp F2        &kp F3        &kp F4      &kp F5        &kp F6           &kp F7      &kp F8      &kp F9      &kp F10       &kp F11       &kp F12
+   &bt BT_SEL 2  &bt BT_SEL 3  &bt BT_SEL 4  &bt BT_CLR  &bootloader   &sys_reset       &kp C_PREV  &kp C_PP    &kp C_NEXT  &kp C_VOL_DN  &kp C_VOL_UP  &kp C_MUTE
+   &out OUT_TOG  &kp LC(LG(Q)) &trans        &trans      &trans        &trans           &kp C_BRI_DN &kp C_BRI_UP &trans     &trans        &trans        &trans
+                                             &trans      &trans        &trans           &trans      &trans      &trans
                         >;
                 };
         };
