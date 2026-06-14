@@ -167,14 +167,16 @@
 
                 lower_layer {
 // -----------------------------------------------------------------------------------------
-// |  `  |  !  |  @  |  #  |  $  |  %  |   |  7  |  8  |  9  |  -  |  /  | BSPC |
-// |  ~  |  ^  |  &  |  *  |  (  |  )  |   |  4  |  5  |  6  |  +  |  *  | ESC  |
-// |  |  |  \  |  [  |  ]  |  {  |  }  |   |  1  |  2  |  3  |  .  |  =  | unlk |
+// |  `  |  !  |  @  |  #  |  $  |  %  |   |  -  |  7  |  8  |  9  |  /  | BSPC |
+// |  ~  |  ^  |  &  |  *  |  (  |  )  |   |  +  |  4  |  5  |  6  |  *  | ESC  |
+// |  |  |  \  |  [  |  ]  |  {  |  }  |   |  .  |  1  |  2  |  3  |  =  | unlk |
 //                    | GUI | LWR | SPC |   | ENT | RSE |  0  |
+//   Numbers shifted to the home columns (index/middle/ring); - + . on the
+//   inner column, / * = on the outer column. 0 stays on the thumb.
                         bindings = <
-   &kp GRAVE  &kp EXCL  &kp AT    &kp HASH  &kp DLLR  &kp PRCNT      &kp N7   &kp N8   &kp N9   &kp MINUS  &kp FSLH   &kp BSPC
-   &kp TILDE  &kp CARET &kp AMPS  &kp ASTRK &kp LPAR  &kp RPAR       &kp N4   &kp N5   &kp N6   &kp PLUS   &kp ASTRK  &kp ESC
-   &kp PIPE   &kp BSLH  &kp LBKT  &kp RBKT  &kp LBRC  &kp RBRC       &kp N1   &kp N2   &kp N3   &kp DOT    &kp EQUAL  &tog 1
+   &kp GRAVE  &kp EXCL  &kp AT    &kp HASH  &kp DLLR  &kp PRCNT      &kp MINUS  &kp N7   &kp N8   &kp N9   &kp FSLH   &kp BSPC
+   &kp TILDE  &kp CARET &kp AMPS  &kp ASTRK &kp LPAR  &kp RPAR       &kp PLUS   &kp N4   &kp N5   &kp N6   &kp ASTRK  &kp ESC
+   &kp PIPE   &kp BSLH  &kp LBKT  &kp RBKT  &kp LBRC  &kp RBRC       &kp DOT    &kp N1   &kp N2   &kp N3   &kp EQUAL  &tog 1
                                    &kp LGUI  &trans    &kp SPACE      &kp RET  &trans   &kp N0
                         >;
                 };
