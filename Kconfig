@@ -1,0 +1,2 @@
+# No custom Kconfig symbols needed; behavior is driven by stock ZMK/LVGL options
+# in config/corne.conf. This file exists so module.yml has a valid kconfig target.
