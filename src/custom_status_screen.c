@@ -54,8 +54,10 @@ static lv_obj_t *rain_labels[COLS];
 static char label_buf[COLS][ROWS * 2]; /* one char + '\n' per row, + NUL */
 
 static lv_obj_t *status_cont;
-static lv_obj_t *layer_label;
 static lv_obj_t *batt_label;
+#if IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
+static lv_obj_t *layer_label;
+#endif
 static bool showing_rain;
 
 static inline uint32_t rnd(uint32_t max) {
@@ -128,7 +130,12 @@ static void set_rain_visible(bool rain) {
 }
 
 static void update_status(void) {
+    /* Layer state only lives on the central half; the peripheral (right) half
+     * doesn't run the keymap, so zmk_keymap_highest_layer_active() isn't even
+     * compiled there. Show the layer only where it's meaningful. */
+#if IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
     lv_label_set_text_fmt(layer_label, "L%d", zmk_keymap_highest_layer_active());
+#endif
     lv_label_set_text_fmt(batt_label, "%d%%", zmk_battery_state_of_charge());
 }
 
@@ -165,15 +172,17 @@ lv_obj_t *zmk_display_status_screen(void) {
     lv_obj_set_size(status_cont, DISP_W, DISP_H);
     lv_obj_set_pos(status_cont, 0, 0);
 
-    layer_label = lv_label_create(status_cont);
-    lv_obj_set_style_text_font(layer_label, &lv_font_unscii_8, LV_PART_MAIN);
-    lv_obj_set_style_text_color(layer_label, lv_color_white(), LV_PART_MAIN);
-    lv_obj_align(layer_label, LV_ALIGN_TOP_LEFT, 0, 2);
-
     batt_label = lv_label_create(status_cont);
     lv_obj_set_style_text_font(batt_label, &lv_font_unscii_8, LV_PART_MAIN);
     lv_obj_set_style_text_color(batt_label, lv_color_white(), LV_PART_MAIN);
-    lv_obj_align(batt_label, LV_ALIGN_TOP_LEFT, 0, 14);
+    lv_obj_align(batt_label, LV_ALIGN_TOP_LEFT, 0, 2);
+
+#if IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
+    layer_label = lv_label_create(status_cont);
+    lv_obj_set_style_text_font(layer_label, &lv_font_unscii_8, LV_PART_MAIN);
+    lv_obj_set_style_text_color(layer_label, lv_color_white(), LV_PART_MAIN);
+    lv_obj_align(layer_label, LV_ALIGN_TOP_LEFT, 0, 14);
+#endif
 
     /* --- Rain view (one vertical label per column, shown while idle) --- */
     for (int i = 0; i < COLS; i++) {
