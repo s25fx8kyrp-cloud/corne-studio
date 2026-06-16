@@ -125,6 +125,12 @@
                         layers = <0>;
                         bindings = <&kp TAB>;
                 };
+                combo_apos {            // L + ; -> '  (keeps the pinky off the 6th column)
+                        timeout-ms = <45>;
+                        key-positions = <21 22>;
+                        layers = <0>;
+                        bindings = <&kp SQT>;
+                };
         };
 
         conditional_layers {
