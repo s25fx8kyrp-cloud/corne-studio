@@ -1,0 +1,4 @@
+name: corne-matrix-rain
+build:
+  cmake: .
+  kconfig: Kconfig

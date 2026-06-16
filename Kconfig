@@ -1,0 +1,5 @@
+# No custom Kconfig symbols are needed for the Matrix-rain widget; behavior is
+# driven entirely by stock ZMK options set in config/corne.conf
+# (CONFIG_ZMK_DISPLAY_STATUS_SCREEN_CUSTOM, CONFIG_LV_FONT_UNSCII_8,
+# CONFIG_ZMK_DISPLAY_BLANK_ON_IDLE). This file exists so module.yml has a valid
+# kconfig target.
