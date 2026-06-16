@@ -13,8 +13,6 @@
  * colors inverted (white -> dark, black -> lit blue); rain falls down.
  */
 
-#include <stdio.h>
-
 #include <zephyr/kernel.h>
 #include <zephyr/random/random.h>
 
@@ -131,8 +129,24 @@ static void set_mode(bool rain) {
     }
 }
 
+/* Format the battery percentage by hand. snprintf/lv_label_set_text_fmt are
+ * heavy stack users and overflow the display thread's small stack (that froze
+ * the display on the previous step). This uses essentially no stack. */
 static void update_status(void) {
-    snprintf(batt_buf, sizeof(batt_buf), "%d%%", zmk_battery_state_of_charge());
+    uint8_t pct = zmk_battery_state_of_charge();
+    int i = 0;
+    if (pct >= 100) {
+        batt_buf[i++] = '1';
+        batt_buf[i++] = '0';
+        batt_buf[i++] = '0';
+    } else if (pct >= 10) {
+        batt_buf[i++] = '0' + (pct / 10);
+        batt_buf[i++] = '0' + (pct % 10);
+    } else {
+        batt_buf[i++] = '0' + pct;
+    }
+    batt_buf[i++] = '%';
+    batt_buf[i] = '\0';
     lv_label_set_text(batt_label, batt_buf);
 }
 
