@@ -1,16 +1,19 @@
 /*
- * Custom OLED status screen for the Corne - STEP 3 (screensaver behavior).
+ * Custom OLED status screen for the Corne - STEP 3 (stripped/safe screensaver).
  *
- * Working rain from step 2, now with activity-based switching:
- *   - ACTIVE (typing): show compact status (battery; layer on the central half).
- *   - IDLE (after CONFIG_ZMK_IDLE_TIMEOUT, 30s): show the Matrix rain.
- *   - Deep sleep (30 min) powers the OLEDs off entirely (handled by ZMK).
+ * Adds the idle->rain switch and a battery-only status on top of the proven
+ * step-2 rain. Deliberately omits the two unproven pieces that may have crashed
+ * the central half:
+ *   - NO zmk_keymap_highest_layer_active() / layer widget flag.
+ *   - NO lv_label_set_text_fmt(); we use snprintf + lv_label_set_text, which is
+ *     what step 2 used successfully on hardware.
  *
- * Still NO display rotation (that bricked the board). The OLEDs are portrait,
- * so the 128px framebuffer axis is vertical on screen; rain falls along it and
- * text shares that orientation. Panel colors are inverted: paint white -> dark,
- * black -> lit blue.
+ * Behavior: ACTIVE (typing) -> battery readout; IDLE (30s) -> Matrix rain;
+ * deep sleep (30 min) powers the OLEDs off. Still NO display rotation. Panel
+ * colors inverted (white -> dark, black -> lit blue); rain falls down.
  */
+
+#include <stdio.h>
 
 #include <zephyr/kernel.h>
 #include <zephyr/random/random.h>
@@ -20,9 +23,6 @@
 #include <zmk/display.h>
 #include <zmk/activity.h>
 #include <zmk/battery.h>
-#if IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
-#include <zmk/keymap.h>
-#endif
 
 #if IS_ENABLED(CONFIG_ZMK_DISPLAY_STATUS_SCREEN_CUSTOM)
 
@@ -52,11 +52,9 @@ static lv_obj_t *lane_labels[LANES];
 static char label_buf[LANES][DEPTH + 1];
 
 static lv_obj_t *batt_label;
-#if IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
-static lv_obj_t *layer_label;
-#endif
+static char batt_buf[8];
 
-static bool showing_rain = true; /* start in rain; first tick corrects it */
+static bool showing_rain = true;
 
 static inline uint32_t rnd(uint32_t max) {
     return sys_rand32_get() % max;
@@ -131,20 +129,11 @@ static void set_mode(bool rain) {
     } else {
         lv_obj_clear_flag(batt_label, LV_OBJ_FLAG_HIDDEN);
     }
-#if IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
-    if (rain) {
-        lv_obj_add_flag(layer_label, LV_OBJ_FLAG_HIDDEN);
-    } else {
-        lv_obj_clear_flag(layer_label, LV_OBJ_FLAG_HIDDEN);
-    }
-#endif
 }
 
 static void update_status(void) {
-    lv_label_set_text_fmt(batt_label, "%d%%", zmk_battery_state_of_charge());
-#if IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
-    lv_label_set_text_fmt(layer_label, "L%d", zmk_keymap_highest_layer_active());
-#endif
+    snprintf(batt_buf, sizeof(batt_buf), "%d%%", zmk_battery_state_of_charge());
+    lv_label_set_text(batt_label, batt_buf);
 }
 
 static void tick_cb(lv_timer_t *timer) {
@@ -186,11 +175,7 @@ lv_obj_t *zmk_display_status_screen(void) {
     }
 
     batt_label = make_label(screen, 0);
-#if IS_ENABLED(CONFIG_ZMK_SPLIT_ROLE_CENTRAL)
-    layer_label = make_label(screen, 16);
-#endif
 
-    /* Start showing status; the first tick will flip to rain if already idle. */
     showing_rain = true;
     set_mode(false);
     update_status();
